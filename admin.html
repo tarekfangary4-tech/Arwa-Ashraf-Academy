@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الإدارة | أكاديمية أروى أشرف</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<style>
+:root {
+  --bg: #080d1c;
+  --card: #111a30;
+  --card2: #18233e;
+  --purple: #8964ff;
+  --gold: #f5c76a;
+  --text: #f4f6ff;
+  --muted: #9daac4;
+  --green: #35d4a0;
+  --red: #ff7185;
+  --border: rgba(255,255,255,.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Cairo, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button, input {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.sidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 260px;
+  height: 100vh;
+  background: #0d1529;
+  border-left: 1px solid var(--border);
+  padding: 25px 15px;
+  z-index: 20;
+  overflow-y: auto;
+}
+
+.logo {
+  text-align: center;
+  padding-bottom: 25px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo-icon {
+  font-size: 40px;
+}
+
+.logo h2 {
+  color: var(--gold);
+  font-size: 20px;
+  margin: 8px 0;
+}
+
+.logo p {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.menu {
+  margin-top: 25px;
+}
+
+.menu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  text-align: right;
+  padding: 13px 15px;
+  border-radius: 12px;
+  margin-bottom: 7px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.menu button.active,
+.menu button:hover {
+  color: white;
+  background: linear-gradient(110deg, #6948dc, #9668ff);
+}
+
+.main {
+  margin-right: 260px;
+  padding: 30px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.topbar h1 {
+  font-size: 25px;
+  margin: 0;
+}
+
+.topbar p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.admin-badge {
+  background: rgba(245,199,106,.12);
+  color: var(--gold);
+  border: 1px solid rgba(245,199,106,.25);
+  padding: 9px 14px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.hero {
+  background: linear-gradient(120deg, #4835a6, #1b2850);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 22px;
+  padding: 30px;
+  margin-bottom: 25px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::after {
+  content: "✦";
+  position: absolute;
+  left: 30px;
+  top: -50px;
+  font-size: 180px;
+  color: rgba(255,255,255,.06);
+}
+
+.hero h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+}
+
+.hero p {
+  color: #e0dcff;
+  font-size: 14px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+}
+
+.stat .icon {
+  font-size: 27px;
+}
+
+.stat p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.stat h2 {
+  font-size: 29px;
+  margin: 7px 0 0;
+}
+
+.stat:nth-child(1) h2 { color: var(--purple); }
+.stat:nth-child(2) h2 { color: var(--gold); }
+.stat:nth-child(3) h2 { color: var(--green); }
+.stat:nth-child(4) h2 { color: var(--red); }
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.panel h3 {
+  margin-top: 0;
+  color: var(--gold);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 650px;
+}
+
+th, td {
+  padding: 14px 12px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+th {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.status {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pending {
+  color: var(--gold);
+  background: rgba(245,199,106,.12);
+}
+
+.approved {
+  color: var(--green);
+  background: rgba(53,212,160,.12);
+}
+
+.rejected {
+  color: var(--red);
+  background: rgba(255,113,133,.12);
+}
+
+.search {
+  background: var(--card2);
+  color: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 15px;
+  width: 100%;
+  max-width: 350px;
+  outline: none;
+  margin-bottom: 15px;
+}
+
+.action {
+  background: var(--purple);
+  color: white;
+  border: none;
+  border-radius: 9px;
+  padding: 9px 14px;
+  font-weight: 700;
+}
+
+.action:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+.empty {
+  color: var(--muted);
+  text-align: center;
+  padding: 30px;
+}
+
+.notice {
+  color: var(--muted);
+  background: var(--card2);
+  border-radius: 12px;
+  padding: 15px;
+  line-height: 2;
+  font-size: 13px;
+}
+
+.logout {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid rgba(255,113,133,.25);
+  border-radius: 12px;
+  background: rgba(255,113,133,.1);
+  color: var(--red);
+  font-weight: 800;
+  margin-top: 20px;
+}
+
+#loading {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 25px;
+}
+
+#loading h2 {
+  color: var(--gold);
+}
+
+#loading p {
+  color: var(--muted);
+  max-width: 500px;
+  overflow-wrap: anywhere;
+}
+
+.mobile-menu {
+  display: none;
+  background: var(--purple);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 15px;
+}
+
+@media(max-width: 1000px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media(max-width: 768px) {
+  .sidebar {
+    right: -270px;
+    transition: .3s;
+  }
+
+  .sidebar.open {
+    right: 0;
+  }
+
+  .main {
+    margin-right: 0;
+    padding: 18px;
+  }
+
+  .mobile-menu {
+    display: block;
+  }
+
+  .topbar h1 {
+    font-size: 19px;
+  }
+
+  .hero {
+    padding: 22px;
+  }
+
+  .hero h2 {
+    font-size: 20px;
+  }
+
+  .stats {
+    gap: 10px;
+  }
+
+  .stat {
+    padding: 15px;
+  }
+
+  .stat h2 {
+    font-size: 24px;
+  }
+
+  .panel {
+    padding: 15px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="loading">
+  <div style="font-size:55px">🎓</div>
+  <h2>أكاديمية أروى أشرف</h2>
+  <p id="loadingText">جاري التحقق من صلاحيات الإدارة...</p>
+</div>
+
+<aside class="sidebar" id="sidebar">
+
+  <div class="logo">
+    <div class="logo-icon">🎓</div>
+    <h2>أكاديمية أروى أشرف</h2>
+    <p>لوحة التحكم الإدارية</p>
+  </div>
+
+  <nav class="menu">
+    <button class="active" onclick="showSection('home',this)">🏠 الرئيسية</button>
+    <button onclick="showSection('students',this)">👥 إدارة الطلاب</button>
+    <button onclick="showSection('lessons',this)">🎬 إدارة الدروس</button>
+    <button onclick="showSection('exams',this)">📝 الامتحانات</button>
+    <button onclick="showSection('subscriptions',this)">💳 الاشتراكات</button>
+    <button onclick="showSection('settings',this)">⚙️ الإعدادات</button>
+  </nav>
+
+  <button class="logout" onclick="logout()">🚪 تسجيل الخروج</button>
+
+</aside>
+
+<main class="main">
+
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="mobile-menu" onclick="toggleMenu()">☰</button>
+      <div>
+        <h1>لوحة الإدارة 👑</h1>
+        <p id="today"></p>
+      </div>
+    </div>
+
+    <span class="admin-badge">مدير الأكاديمية</span>
+  </div>
+
+  <section id="home" class="section active">
+
+    <div class="hero">
+      <h2 id="welcome">أهلًا بك في لوحة الإدارة 👋</h2>
+      <p>من هنا تقدر تتابع الأكاديمية والطلاب وكل تفاصيل العملية التعليمية.</p>
+    </div>
+
+    <div class="stats">
+
+      <div class="stat">
+        <div class="icon">👥</div>
+        <p>إجمالي الطلاب</p>
+        <h2 id="totalStudents">0</h2>
+      </div>
+
+      <div class="stat">
+        <div class="icon">⏳</div>
+        <p>بانتظار الموافقة</p>
+        <h2 id="pendingStudents">0</h2>
+      </div>
+
+      <div class="stat">
+        <div class="icon">✅</div>
+        <p>الطلاب المقبولون</p>
+        <h2 id="approvedStudents">0</h2>
+      </div>
+
+      <div class="stat">
+        <div class="icon">❌</div>
+        <p>الطلاب المرفوضون</p>
+        <h2 id="rejectedStudents">0</h2>
+      </div>
+
+    </div>
+
+    <div class="panel">
+      <h3>⏳ أحدث طلبات التسجيل</h3>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>اسم الطالب</th>
+              <th>المرحلة</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="recentStudents">
+            <tr><td colspan="3">جاري التحميل...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+  <section id="students" class="section">
+
+    <div class="panel">
+      <h3>👥 إدارة الطلاب</h3>
+
+      <input
+        id="studentSearch"
+        class="search"
+        placeholder="🔎 ابحث عن طالب..."
+        oninput="renderStudents()"
+      >
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>رقم الهاتف</th>
+              <th>المرحلة</th>
+              <th>الحالة</th>
+              <th>الإجراء</th>
+            </tr>
+          </thead>
+
+          <tbody id="studentsTable">
+            <tr><td colspan="5">جاري تحميل الطلاب...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="notice">
+        🔐 أزرار الموافقة والرفض هتتفعّل بعد تجهيز وظيفة آمنة لتغيير حالة الطلاب في قاعدة البيانات.
+      </p>
+
+    </div>
+
+  </section>
+
+  <section id="lessons" class="section">
+    <div class="panel">
+      <h3>🎬 إدارة الدروس</h3>
+      <p class="notice">
+        القسم جاهز للتطوير. هنضيف فيه إنشاء المواد والوحدات والدروس، وربط الفيديوهات بالصفوف الدراسية.
+      </p>
+    </div>
+  </section>
+
+  <section id="exams" class="section">
+    <div class="panel">
+      <h3>📝 إدارة الامتحانات</h3>
+      <p class="notice">
+        هنا هنضيف إنشاء الامتحانات والأسئلة والتصحيح وعرض نتائج الطلاب.
+      </p>
+    </div>
+  </section>
+
+  <section id="subscriptions" class="section">
+    <div class="panel">
+      <h3>💳 إدارة الاشتراكات</h3>
+      <p class="notice">
+        هنا هنضيف متابعة الاشتراكات والمدفوعات وتواريخ انتهاء الاشتراك.
+      </p>
+    </div>
+  </section>
+
+  <section id="settings" class="section">
+    <div class="panel">
+      <h3>⚙️ إعدادات الأكاديمية</h3>
+      <p class="notice">
+        الأكاديمية: أروى أشرف<br>
+        نوع الحساب: إدارة<br>
+        صلاحيات الإدارة: يتم التحقق منها عبر Supabase.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+
+/* ===== إعدادات Supabase ===== */
+
+const SUPABASE_URL = "https://njyusmbeefzhvexlnncd.supabase.co";
+
+/*
+ضع هنا نفس Publishable Key
+الموجود في ملف dashboard.html
+*/
+
+const SUPABASE_KEY = "PUT_YOUR_PUBLISHABLE_KEY_HERE";
+
+const client = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+/* ===== المتغيرات ===== */
+
+let students = [];
+let currentAdmin = null;
+
+/* ===== التاريخ ===== */
+
+document.getElementById("today").textContent =
+  new Date().toLocaleDateString("ar-EG", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+
+/* ===== القائمة ===== */
+
+function toggleMenu() {
+  document.getElementById("sidebar").classList.toggle("open");
+}
+
+function showSection(id, button) {
+
+  document.querySelectorAll(".section").forEach(section => {
+    section.classList.remove("active");
+  });
+
+  document.getElementById(id).classList.add("active");
+
+  document.querySelectorAll(".menu button").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  button.classList.add("active");
+
+  document.getElementById("sidebar").classList.remove("open");
+}
+
+/* ===== حماية الإدارة ===== */
+
+async function initialize() {
+
+  const loadingText = document.getElementById("loadingText");
+
+  try {
+
+    const { data: authData, error: authError } =
+      await client.auth.getUser();
+
+    if (authError || !authData.user) {
+      location.replace("auth.html");
+      return;
+    }
+
+    const user = authData.user;
+
+    const { data: profile, error: profileError } =
+      await client
+        .from("profiles")
+        .select("id,full_name,account_type,approval_status")
+        .eq("id", user.id)
+        .single();
+
+    if (profileError) throw profileError;
+
+    if (
+      !profile ||
+      profile.account_type !== "admin" ||
+      profile.approval_status !== "approved"
+    ) {
+      loadingText.textContent =
+        "⛔ ليس لديك صلاحية الدخول إلى لوحة الإدارة.";
+      return;
+    }
+
+    currentAdmin = profile;
+
+    document.getElementById("welcome").textContent =
+      "أهلًا، " + profile.full_name + " 👑";
+
+    /*
+      بعد التحقق من صلاحية الإدارة
+      نحمّل الطلاب.
+    */
+
+    await loadStudents();
+
+    document.getElementById("loading").style.display = "none";
+
+  } catch (error) {
+
+    console.error(error);
+
+    loadingText.textContent =
+      "حدث خطأ أثناء تحميل لوحة الإدارة: " +
+      (error.message || "خطأ غير معروف");
+
+  }
+}
+
+/* ===== تحميل الطلاب ===== */
+
+async function loadStudents() {
+
+  const { data, error } = await client
+    .from("profiles")
+    .select("id,full_name,phone,account_type,grade,approval_status,created_at")
+    .eq("account_type", "student")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  students = data || [];
+
+  updateStats();
+  renderStudents();
+  renderRecent();
+
+}
+
+/* ===== الإحصائيات ===== */
+
+function updateStats() {
+
+  document.getElementById("totalStudents").textContent =
+    students.length;
+
+  document.getElementById("pendingStudents").textContent =
+    students.filter(s => s.approval_status === "pending").length;
+
+  document.getElementById("approvedStudents").textContent =
+    students.filter(s => s.approval_status === "approved").length;
+
+  document.getElementById("rejectedStudents").textContent =
+    students.filter(s => s.approval_status === "rejected").length;
+
+}
+
+/* ===== عرض الحالة ===== */
+
+function statusBadge(status) {
+
+  if (status === "approved") {
+    return '<span class="status approved">مقبول</span>';
+  }
+
+  if (status === "rejected") {
+    return '<span class="status rejected">مرفوض</span>';
+  }
+
+  return '<span class="status pending">قيد الانتظار</span>';
+}
+
+/* ===== حماية عرض النصوص ===== */
+
+function escapeHTML(value) {
+
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
+}
+
+/* ===== جدول الطلاب ===== */
+
+function renderStudents() {
+
+  const query = document
+    .getElementById("studentSearch")
+    .value.trim()
+    .toLowerCase();
+
+  const filtered = students.filter(s =>
+    (s.full_name || "").toLowerCase().includes(query) ||
+    (s.grade || "").toLowerCase().includes(query)
+  );
+
+  const table = document.getElementById("studentsTable");
+
+  if (!filtered.length) {
+
+    table.innerHTML =
+      '<tr><td colspan="5" class="empty">لا يوجد طلاب مطابقون</td></tr>';
+
+    return;
+  }
+
+  table.innerHTML = filtered.map(s => `
+    <tr>
+      <td>${escapeHTML(s.full_name)}</td>
+      <td>${escapeHTML(s.phone || "—")}</td>
+      <td>${escapeHTML(s.grade || "—")}</td>
+      <td>${statusBadge(s.approval_status)}</td>
+      <td>
+        <button class="action" disabled title="سيتم تفعيل الموافقة بعد إعداد الصلاحيات">
+          إدارة الحساب
+        </button>
+      </td>
+    </tr>
+  `).join("");
+
+}
+
+/* ===== أحدث الطلبات ===== */
+
+function renderRecent() {
+
+  const recent = students
+    .filter(s => s.approval_status === "pending")
+    .slice(0, 5);
+
+  const table = document.getElementById("recentStudents");
+
+  if (!recent.length) {
+
+    table.innerHTML =
+      '<tr><td colspan="3" class="empty">لا توجد طلبات انتظار حاليًا</td></tr>';
+
+    return;
+  }
+
+  table.innerHTML = recent.map(s => `
+    <tr>
+      <td>${escapeHTML(s.full_name)}</td>
+      <td>${escapeHTML(s.grade || "—")}</td>
+      <td>${statusBadge(s.approval_status)}</td>
+    </tr>
+  `).join("");
+
+}
+
+/* ===== تسجيل الخروج ===== */
+
+async function logout() {
+
+  await client.auth.signOut();
+
+  location.replace("auth.html");
+
+}
+
+/* ===== التشغيل ===== */
+
+initialize();
+
+</script>
+
+</body>
+</html>
