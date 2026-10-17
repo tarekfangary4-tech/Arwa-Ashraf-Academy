@@ -16,7 +16,9 @@
 <section class="section active" id="home"><div class="hero"><h2 id="welcome">أهلًا بك 👋</h2><p>تابع الطلاب وطلبات التسجيل من مكان واحد.</p></div><div class="stats"><div class="stat">👥<small>إجمالي الطلاب</small><strong id="total">—</strong></div><div class="stat">⏳<small>بانتظار الموافقة</small><strong id="pending">—</strong></div><div class="stat">✅<small>الطلاب المقبولون</small><strong id="approved">—</strong></div><div class="stat">❌<small>الطلاب المرفوضون</small><strong id="rejected">—</strong></div></div><div class="panel"><h3>⏳ أحدث طلبات التسجيل</h3><div class="tablebox"><table><thead><tr><th>الاسم</th><th>المرحلة</th><th>الحالة</th></tr></thead><tbody id="recent"><tr><td colspan="3">جاري التحميل...</td></tr></tbody></table></div></div></section>
 <section class="section" id="students"><div class="panel"><h3>👥 إدارة الطلاب</h3><input class="search" id="search" placeholder="🔎 ابحث بالاسم أو المرحلة"><div class="tablebox"><table><thead><tr><th>الاسم</th><th>الهاتف</th><th>المرحلة</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="studentRows"></tbody></table></div><p class="note">🔐 الموافقة والرفض هيتفعّلوا بعد إعداد وظيفة تعديل آمنة في قاعدة البيانات.</p></div></section>
 <section class="section" id="lessons"><div class="panel"><h3>🎬 إدارة الدروس</h3><p class="note">أضف الدروس وحدد المرحلة ونوع الوصول. الدروس المجانية تظهر للطلاب المسجلين في نفس المرحلة، والمدفوعة تظل مغلقة لحين تجهيز الاشتراكات.</p>
-<form id="lessonForm"><input type="hidden" id="lessonId"><div class="formgrid"><div><label for="lessonTitle">عنوان الدرس *</label><input id="lessonTitle" maxlength="180" required placeholder="مثال: النحو - الدرس الأول"></div><div><label for="lessonGrade">المرحلة الدراسية *</label><input id="lessonGrade" required maxlength="120" placeholder="مثال: الصف الثالث الإعدادي" list="gradesList"><datalist id="gradesList"><option value="الصف الأول الإعدادي"><option value="الصف الثاني الإعدادي"><option value="الصف الثالث الإعدادي"><option value="الصف الأول الثانوي"><option value="الصف الثاني الثانوي"><option value="الصف الثالث الثانوي"></datalist></div><div><label for="lessonType">نوع الدرس</label><select id="lessonType"><option value="free">مجاني</option><option value="paid">مدفوع (مغلق حاليًا)</option></select></div><div><label for="lessonVideo">رابط الفيديو (https)</label><input id="lessonVideo" type="url" placeholder="https://..."></div></div><label for="lessonDescription">وصف الدرس</label><textarea id="lessonDescription" rows="3" maxlength="3000" placeholder="ملخص بسيط للدرس"></textarea><div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px"><button class="primary" id="saveLesson" type="submit">➕ إضافة الدرس</button><button class="secondary" id="cancelEdit" type="button" hidden>إلغاء التعديل</button></div></form><div id="lessonFeedback" class="feedback" role="status"></div></div><div class="panel"><h3>📚 الدروس المنشورة</h3><button class="secondary" id="refreshLessons" type="button">↻ تحديث الدروس</button><div id="lessonList" style="margin-top:15px">جاري تحميل الدروس...</div></div></section><section class="section" id="exams"><div class="panel"><h3>📝 الامتحانات</h3><p class="note">هنضيف إنشاء الاختبارات والأسئلة والنتائج.</p></div></section><section class="section" id="subscriptions"><div class="panel"><h3>💳 الاشتراكات</h3><p class="note">هنضيف متابعة الاشتراكات والمدفوعات.</p></div></section><section class="section" id="settings"><div class="panel"><h3>⚙️ الإعدادات</h3><p class="note">أكاديمية أروى أشرف — لوحة إدارة محمية بصلاحيات Supabase.</p></div></section></main>
+<form id="lessonForm"><input type="hidden" id="lessonId"><div class="formgrid"><div><label for="lessonTitle">عنوان الدرس *</label><input id="lessonTitle" maxlength="180" required placeholder="مثال: النحو - الدرس الأول"></div><div><label for="lessonGrade">المرحلة الدراسية *</label><input id="lessonGrade" required maxlength="120" placeholder="مثال: الصف الثالث الإعدادي" list="gradesList"><datalist id="gradesList"><option value="الصف الأول الإعدادي"><option value="الصف الثاني الإعدادي"><option value="الصف الثالث الإعدادي"><option value="الصف الأول الثانوي"><option value="الصف الثاني الثانوي"><option value="الصف الثالث الثانوي"></datalist></div><div><label for="lessonType">نوع الدرس</label><select id="lessonType"><option value="free">مجاني</option><option value="paid">مدفوع (مغلق حاليًا)</option></select></div><div><label for="lessonVideo">رابط الفيديو (https) — اختياري</label><input id="lessonVideo" type="url" placeholder="https://..."></div><div><label for="lessonFile">📱 أو اختار فيديو من الموبايل</label><input id="lessonFile" type="file" accept="video/mp4,video/webm,video/quicktime,video/*"><small style="color:var(--muted)">الفيديوهات الكبيرة تحتاج إنترنت مستقر. يُفضّل MP4.</small><div id="uploadProgress" class="feedback" role="status"></div></div></div><label for="lessonDescription">وصف الدرس</label><textarea id="lessonDescription" rows="3" maxlength="3000" placeholder="ملخص بسيط للدرس"></textarea><div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px"><button class="primary" id="saveLesson" type="submit">➕ إضافة الدرس</button><button class="secondary" id="cancelEdit" type="button" hidden>إلغاء التعديل</button></div></form><div id="lessonFeedback" class="feedback" role="status"></div></div><div class="panel"><h3>📚 الدروس المنشورة</h3><button class="secondary" id="refreshLessons" type="button">↻ تحديث الدروس</button><div id="lessonList" style="margin-top:15px">جاري تحميل الدروس...</div></div></section><section class="section" id="exams"><div class="panel"><h3>📝 الامتحانات</h3><p class="note">هنضيف إنشاء الاختبارات والأسئلة والنتائج.</p></div></section><section class="section" id="subscriptions"><div class="panel"><h3>💳 الاشتراكات</h3><p class="note">هنضيف متابعة الاشتراكات والمدفوعات.</p></div></section><section class="section" id="settings"><div class="panel"><h3>⚙️ الإعدادات</h3><p class="note">أكاديمية أروى أشرف — لوحة إدارة محمية بصلاحيات Supabase.</p></div></section></main>
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
+<script src="./video-uploader.js"></script>
 <script>
 'use strict';
 const PROJECT_URL='https://njyusmbeefzhvexlnncd.supabase.co';
@@ -62,7 +64,7 @@ async function start(){try{
 
 const lessonFeedback=(msg)=>{$('lessonFeedback').textContent=msg;};
 const safeVideo=(url)=>{if(!url)return null;try{const u=new URL(url);return u.protocol==='https:'?u.href:null}catch{return null}};
-function resetLessonForm(){$('lessonForm').reset();$('lessonId').value='';$('saveLesson').textContent='➕ إضافة الدرس';$('cancelEdit').hidden=true;}
+function resetLessonForm(){$('lessonForm').reset();$('uploadProgress').textContent='';$('lessonId').value='';$('saveLesson').textContent='➕ إضافة الدرس';$('cancelEdit').hidden=true;}
 async function loadLessons(){
  const {data,error}=await client.from('lessons').select('id,title,description,grade,video_url,is_free,created_at').order('created_at',{ascending:false});
  if(error){$('lessonList').textContent='تعذر تحميل الدروس: '+error.message;return;}
@@ -77,7 +79,7 @@ function renderLessons(){
   const info=document.createElement('p');info.textContent=(l.grade||'—')+' • '+(l.is_free?'🟢 مجاني':'🔒 مدفوع');
   const desc=document.createElement('p');desc.textContent=l.description||'بدون وصف';
   const actions=document.createElement('div');actions.className='lesson-actions';
-  const edit=document.createElement('button');edit.className='secondary';edit.textContent='✏️ تعديل';edit.onclick=()=>{ $('lessonId').value=l.id;$('lessonTitle').value=l.title;$('lessonGrade').value=l.grade;$('lessonDescription').value=l.description||'';$('lessonVideo').value=l.video_url||'';$('lessonType').value=l.is_free?'free':'paid';$('saveLesson').textContent='💾 حفظ التعديل';$('cancelEdit').hidden=false;$('lessonForm').scrollIntoView({behavior:'smooth',block:'start'});};
+  const edit=document.createElement('button');edit.className='secondary';edit.textContent='✏️ تعديل';edit.onclick=()=>{ $('lessonId').value=l.id;$('lessonTitle').value=l.title;$('lessonGrade').value=l.grade;$('lessonDescription').value=l.description||'';$('lessonVideo').value=safeVideo(l.video_url)||'';$('lessonType').value=l.is_free?'free':'paid';$('saveLesson').textContent='💾 حفظ التعديل';$('cancelEdit').hidden=false;$('lessonForm').scrollIntoView({behavior:'smooth',block:'start'});};
   const del=document.createElement('button');del.className='danger';del.textContent='🗑️ حذف';del.onclick=async()=>{if(!confirm('حذف الدرس «'+l.title+'» نهائيًا؟'))return;del.disabled=true;const {error}=await client.from('lessons').delete().eq('id',l.id);if(error){lessonFeedback('تعذر الحذف: '+error.message);del.disabled=false;return;}lessonFeedback('تم حذف الدرس.');await loadLessons();};
   actions.append(edit,del);const link=safeVideo(l.video_url);if(link){const a=document.createElement('a');a.href=link;a.target='_blank';a.rel='noopener noreferrer';a.textContent='🎥 فتح الفيديو';a.className='secondary';actions.append(a);}
   box.append(h,info,desc,actions);$('lessonList').append(box);
@@ -85,16 +87,34 @@ function renderLessons(){
 }
 $('cancelEdit').addEventListener('click',()=>{resetLessonForm();lessonFeedback('');});
 $('refreshLessons').addEventListener('click',()=>loadLessons());
+async function uploadVideo(file){
+ const progress=$('uploadProgress');
+ progress.textContent='جارٍ تجهيز رفع الفيديو...';
+ const result=await window.AcademyVideoUploader.upload({
+  client,projectUrl:PROJECT_URL,file,
+  onProgress:pct=>{progress.textContent='⬆️ جاري رفع الفيديو: '+pct+'%';}
+ });
+ progress.textContent='✅ اكتمل رفع الفيديو.';
+ return result;
+}
 $('lessonForm').addEventListener('submit',async e=>{
  e.preventDefault();const id=$('lessonId').value;
  const title=$('lessonTitle').value.trim(),grade=$('lessonGrade').value.trim(),description=$('lessonDescription').value.trim();
- const raw=$('lessonVideo').value.trim(),video_url=safeVideo(raw);
+ const raw=$('lessonVideo').value.trim(),file=$('lessonFile').files[0];
  if(!title||!grade){lessonFeedback('العنوان والمرحلة مطلوبان.');return;}
- if(raw&&!video_url){lessonFeedback('رابط الفيديو لازم يبدأ بـ https://');return;}
- const payload={title,grade,description:description||null,video_url,is_free:$('lessonType').value==='free'};
+ if(raw&&!safeVideo(raw)){lessonFeedback('رابط الفيديو لازم يبدأ بـ https://');return;}
+ if(raw&&file){lessonFeedback('اختار طريقة واحدة: رابط فيديو أو ملف من الهاتف.');return;}
  const btn=$('saveLesson');btn.disabled=true;lessonFeedback('جارٍ حفظ الدرس...');
- try{const result=id?await client.from('lessons').update(payload).eq('id',id).select('id'):await client.from('lessons').insert(payload).select('id');if(result.error)throw result.error;if(!result.data?.length)throw Error('لم يتم حفظ الدرس. تحقق من صلاحيات الإدارة.');resetLessonForm();lessonFeedback('✅ تم حفظ الدرس بنجاح.');await loadLessons();}catch(err){lessonFeedback('تعذر حفظ الدرس: '+(err.message||'خطأ غير معروف'));}finally{btn.disabled=false;}
+ try{
+  let video_url=file?await uploadVideo(file):(safeVideo(raw)||null);
+  if(id&&!file&&!raw){const old=lessons.find(l=>l.id===id);video_url=old?.video_url||null;}
+  const payload={title,grade,description:description||null,video_url,is_free:$('lessonType').value==='free'};
+  const result=id?await client.from('lessons').update(payload).eq('id',id).select('id'):await client.from('lessons').insert(payload).select('id');
+  if(result.error)throw result.error;if(!result.data?.length)throw Error('لم يتم حفظ الدرس. تحقق من صلاحيات الإدارة.');
+  resetLessonForm();lessonFeedback('✅ تم حفظ الدرس بنجاح.');await loadLessons();
+ }catch(err){lessonFeedback('تعذر حفظ الدرس: '+(err.message||'خطأ غير معروف'));}finally{btn.disabled=false;}
 });
  $('logout').addEventListener('click',async()=>{if(client)await client.auth.signOut();location.replace('auth.html');});
  start();
 </script></body></html>
+ 
