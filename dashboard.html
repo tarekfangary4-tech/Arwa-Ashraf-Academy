@@ -68,13 +68,27 @@ async function startStudentExam(id){const area=$('examWork');area.classList.remo
  const form=document.createElement('form');
  for(const [index,q] of data.questions.entries()){
   const block=document.createElement('div');block.className='card';const h=document.createElement('h3');h.textContent=`${index+1}. ${q.text} (${q.points} درجة)`;block.append(h);
-  q.options.forEach((option,i)=>{const label=document.createElement('label');label.style.display='block';label.style.margin='8px 0';const input=document.createElement('input');input.type='radio';input.name=q.id;input.value=String(i);input.style.width='auto';label.append(input,document.createTextNode(' '+option));block.append(label);});form.append(block);
+  const type=q.type||'mcq';
+  if(type==='essay'){
+   const input=document.createElement('textarea');input.name=q.id;input.rows=5;input.maxLength=10000;input.placeholder='اكتب إجابتك هنا...';input.style.width='100%';block.append(input);
+  }else if(type==='match'){
+   for(let i=0;i<q.options.length;i++){
+    const label=document.createElement('label');label.textContent=q.options[i].left+' ← ';label.style.display='block';label.style.margin='10px 0';
+    const select=document.createElement('select');select.dataset.match=q.id;select.dataset.index=String(i);const empty=document.createElement('option');empty.value='';empty.textContent='اختر المقابل';select.append(empty);
+    q.options[i].rights.forEach((v,j)=>{const opt=document.createElement('option');opt.value=String(j);opt.textContent=v;select.append(opt);});label.append(select);block.append(label);
+   }
+  }else{
+   q.options.forEach((option,i)=>{const label=document.createElement('label');label.style.display='block';label.style.margin='8px 0';const input=document.createElement('input');input.type='radio';input.name=q.id;input.value=String(i);input.style.width='auto';label.append(input,document.createTextNode(' '+option));block.append(label);});
+  }
+  form.append(block);
  }
  const submit=document.createElement('button');submit.type='submit';submit.className='btn';submit.textContent='✅ تسليم الامتحان';form.append(submit);area.append(form);
  form.onsubmit=async ev=>{ev.preventDefault();if(Date.now()>examDeadline){alert('انتهى الوقت');return;}if(!confirm('هل أنت متأكد من تسليم الإجابات؟'))return;
- submit.disabled=true;const answers={};for(const q of data.questions){const selected=form.querySelector(`input[name="${q.id}"]:checked`);if(selected)answers[q.id]=Number(selected.value);}
+ submit.disabled=true;const answers={};for(const q of data.questions){if(q.type==='essay'){answers[q.id]=form.querySelector(`textarea[name="${q.id}"]`)?.value||'';}
+ else if(q.type==='match'){answers[q.id]=Array.from(form.querySelectorAll(`select[data-match="${q.id}"]`)).map(x=>x.value===''?-1:Number(x.value));}
+ else{const selected=form.querySelector(`input[name="${q.id}"]:checked`);if(selected)answers[q.id]=Number(selected.value);}}
  const result=await client.rpc('submit_academy_exam',{p_exam_id:id,p_answers:answers});if(result.error){alert(result.error.message);submit.disabled=false;return;}
- clearInterval(examTimer);area.replaceChildren();const resultText=document.createElement('h2');resultText.textContent=`🎉 نتيجتك: ${result.data.score} من ${result.data.max_score}`;area.append(resultText);activeExamId=null;};
+ clearInterval(examTimer);area.replaceChildren();const resultText=document.createElement('h2');resultText.textContent=result.data.pending_review?'✅ تم التسليم. الدرجة النهائية ستظهر بعد تصحيح الأسئلة المقالية.':`🎉 نتيجتك: ${result.data.score} من ${result.data.max_score}`;area.append(resultText);activeExamId=null;};
  area.scrollIntoView({behavior:'smooth'});
 }
 
