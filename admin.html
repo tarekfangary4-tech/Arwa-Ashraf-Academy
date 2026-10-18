@@ -133,13 +133,26 @@ function renderExams(){
   const list=document.createElement('div');list.className='feedback';list.textContent='جارٍ تحميل الأسئلة...';
   const add=document.createElement('button');add.className='secondary';add.textContent='➕ إضافة سؤال';
   add.onclick=async()=>{
+   const type=prompt('نوع السؤال: 1 اختياري | 2 صح وغلط | 3 مقالي | 4 وصل', '1');
+   if(!['1','2','3','4'].includes(type))return;
    const text=prompt('اكتب نص السؤال:');if(!text?.trim())return;
-   const options=[];for(let i=0;i<4;i++){const v=prompt(`الإجابة ${i+1}:`);if(!v?.trim())return;options.push(v.trim());}
-   const correct=Number(prompt('رقم الإجابة الصحيحة (1 إلى 4):'));
-   if(!Number.isInteger(correct)||correct<1||correct>4){alert('رقم الإجابة غير صحيح');return;}
-   const points=Number(prompt('درجة السؤال:', '1'));
+   const points=Number(prompt('درجة السؤال (1 - 100):','1'));
    if(!Number.isInteger(points)||points<1||points>100){alert('درجة غير صحيحة');return;}
-   const {error}=await client.from('exam_questions').insert({exam_id:e.id,question_text:text.trim(),options,correct_index:correct-1,points});
+   const payload={exam_id:e.id,question_text:text.trim(),points,question_type:({1:'mcq',2:'tf',3:'essay',4:'match'})[type],options:[],correct_index:null,answer_key:null};
+   if(type==='1'){
+    const count=Number(prompt('عدد الاختيارات (2 - 8):','4'));
+    if(!Number.isInteger(count)||count<2||count>8)return alert('عدد غير صحيح');
+    for(let i=0;i<count;i++){const v=prompt(`الاختيار ${i+1}:`);if(!v?.trim())return;payload.options.push(v.trim());}
+    const correct=Number(prompt(`رقم الإجابة الصحيحة (1 - ${count}):`));if(!Number.isInteger(correct)||correct<1||correct>count)return alert('رقم غير صحيح');payload.correct_index=correct-1;
+   }else if(type==='2'){
+    payload.options=['صح','غلط'];const v=prompt('الإجابة الصحيحة: 1 صح | 2 غلط','1');if(!['1','2'].includes(v))return;payload.correct_index=Number(v)-1;
+   }else if(type==='4'){
+    const count=Number(prompt('عدد أزواج التوصيل (2 - 12):','3'));if(!Number.isInteger(count)||count<2||count>12)return;
+    const left=[],right=[];for(let i=0;i<count;i++){const l=prompt(`العنصر ${i+1} (العمود الأول):`);const r=prompt(`ما يقابله في العمود الثاني:`);if(!l?.trim()||!r?.trim())return;left.push(l.trim());right.push(r.trim());}
+    const shuffled=right.map((v,i)=>({v,i})).sort(()=>Math.random()-.5);
+    payload.options=left.map((v,i)=>({left:v,rights:shuffled.map(x=>x.v)}));payload.answer_key=left.map((_,i)=>shuffled.findIndex(x=>x.i===i));
+   }
+   const {error}=await client.from('exam_questions').insert(payload);
    if(error)alert(error.message);else{examFeedback('✅ تمت إضافة السؤال');await showQuestions(e.id,list);}
   };
   const toggle=document.createElement('button');toggle.className='secondary';toggle.textContent=e.published?'إلغاء النشر':'نشر الامتحان';
@@ -151,10 +164,10 @@ function renderExams(){
  }
 }
 async function showQuestions(examId,area){
- const {data,error}=await client.from('exam_questions').select('id,question_text,options,correct_index,points').eq('exam_id',examId).order('position');
+ const {data,error}=await client.from('exam_questions').select('id,question_text,options,correct_index,points,question_type,answer_key').eq('exam_id',examId).order('position');
  area.replaceChildren();if(error){area.textContent=error.message;return;}
  if(!data?.length){area.textContent='لم تُضف أسئلة بعد.';return;}
- for(const q of data){const row=document.createElement('p');row.textContent=`❓ ${q.question_text} — ${q.points} درجة — الصحيحة: ${q.options[q.correct_index]}`;
+ for(const q of data){const row=document.createElement('p');row.textContent=`❓ ${q.question_text} — ${q.points} درجة — ${q.question_type==='essay'?'مقالي':q.question_type==='match'?'وصل':q.question_type==='tf'?'صح وغلط':'اختياري'}`;
  const del=document.createElement('button');del.className='danger';del.textContent='حذف السؤال';del.onclick=async()=>{if(!confirm('حذف السؤال؟'))return;const {error}=await client.from('exam_questions').delete().eq('id',q.id);if(error)alert(error.message);else showQuestions(examId,area);};area.append(row,del);}
 }
 $('examForm').addEventListener('submit',async ev=>{ev.preventDefault();const btn=ev.submitter;btn.disabled=true;
@@ -164,9 +177,15 @@ $('examForm').addEventListener('submit',async ev=>{ev.preventDefault();const btn
 });
 $('refreshExams').onclick=loadExams;
 $('refreshResults').onclick=loadExamResults;
-async function loadExamResults(){const area=$('examResults');const {data,error}=await client.from('exam_attempts').select('exam_id,student_id,score,max_score,submitted_at').not('submitted_at','is',null).order('submitted_at',{ascending:false}).limit(100);
+async function loadExamResults(){const area=$('examResults');const {data,error}=await client.from('exam_attempts').select('id,exam_id,student_id,score,max_score,submitted_at,review_status,answers').not('submitted_at','is',null).order('submitted_at',{ascending:false}).limit(100);
  if(error){area.textContent='تعذر تحميل النتائج: '+error.message;return;}area.replaceChildren();if(!data?.length){area.textContent='لا توجد نتائج بعد.';return;}
- for(const r of data){const p=document.createElement('p');const student=students.find(s=>s.id===r.student_id);const exam=academyExams.find(e=>e.id===r.exam_id);p.textContent=`${student?.full_name||r.student_id} — ${exam?.title||'امتحان'}: ${r.score}/${r.max_score}`;area.append(p);}
+ for(const r of data){const p=document.createElement('p');const student=students.find(s=>s.id===r.student_id);const exam=academyExams.find(e=>e.id===r.exam_id);p.textContent=`${student?.full_name||r.student_id} — ${exam?.title||'امتحان'}: ${r.review_status==='pending_review'?'بانتظار تصحيح المقالي':r.score+'/'+r.max_score}`;area.append(p);
+ if(r.review_status==='pending_review'){
+  const btn=document.createElement('button');btn.className='secondary';btn.textContent='✍️ تصحيح المقالي';area.append(btn);
+  btn.onclick=async()=>{const {data:qs,error:qe}=await client.from('exam_questions').select('id,question_text,points,question_type').eq('exam_id',r.exam_id).eq('question_type','essay');if(qe)return alert(qe.message);
+   const scores={};for(const q of qs||[]){const answer=r.answers?.[q.id]||'(بدون إجابة)';const v=prompt(`${q.question_text}\nإجابة الطالب: ${answer}\nالدرجة من ${q.points}:`,'0');if(v===null)return;const n=Number(v);if(!Number.isInteger(n)||n<0||n>q.points)return alert('درجة غير صحيحة');scores[q.id]=n;}
+   const {error}=await client.rpc('review_academy_exam',{p_attempt_id:r.id,p_essay_scores:scores});if(error)alert(error.message);else loadExamResults();};
+ }}
 }
 
  $('logout').addEventListener('click',async()=>{if(client)await client.auth.signOut();location.replace('auth.html');});
